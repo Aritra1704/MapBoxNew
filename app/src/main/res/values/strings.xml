@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MapBoxNew</string>
+    <string name="mapbox_access_token">API_KEY</string>
+</resources>
