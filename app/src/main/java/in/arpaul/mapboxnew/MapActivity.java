@@ -8,20 +8,16 @@ import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -35,9 +31,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.constants.MyLocationTracking;
@@ -50,15 +43,15 @@ import in.arpaul.mapboxnew.dataobject.LocCoordDO;
 
 import static in.arpaul.mapboxnew.BuildConfig.DEBUG;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
+public class MapActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String TAG = MapActivity.class.getSimpleName();
 
     private MapView mvMap;
     private MapboxMap map;
     private boolean mIsValidGlVersion;
-    private ImageView ivMarkerCentre;
+//    private ImageView ivMarkerCentre;
     private EditText edtLocation;
     private TextView tvLocate, tvSearch, tvCopy, tvPaste;
     private final static String STYLE_ID = "";
@@ -72,9 +65,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         mIsValidGlVersion = isGlEsVersionSupported(this);
 
-//        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
-        Mapbox.getInstance(this, getString(R.string.digtalglobe_access_token_sk));
-        setContentView(R.layout.activity_main);
+        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
+        setContentView(R.layout.activity_map);
 
         intialiseUIControls();
         mvMap.onCreate(savedInstanceState);
@@ -97,23 +89,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         tvLocate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                float mWidth = ivMarkerCentre.getX() + ivMarkerCentre.getWidth()  / 2;
-                float mHeight = ivMarkerCentre.getY() + ivMarkerCentre.getHeight();
-
-                float wrongX = ivMarkerCentre.getLeft() + (ivMarkerCentre.getWidth() / 2);
-                float wrongY = ivMarkerCentre.getBottom();
-
-
+//                float mWidth = ivMarkerCentre.getX() + ivMarkerCentre.getWidth()  / 2;
+//                float mHeight = ivMarkerCentre.getY() + ivMarkerCentre.getHeight() / 2;
 //                int mWidth= MainActivity.this.getResources().getDisplayMetrics().widthPixels / 2;
 //                int mHeight= MainActivity.this.getResources().getDisplayMetrics().heightPixels / 2;
 //                mvMap.getpo
+//                mWidth--;
+//                mHeight++;
 
-                LogUtils.debugLog("markerLoc", "mWidth: " + mWidth + " mHeight: " + mHeight + "\nwrongX: " + wrongX + " wrongY: " + wrongY);
-
-                LatLng latLng = map.getProjection().fromScreenLocation(new PointF(mWidth, mHeight));
-                LatLng wronglatLng = map.getProjection().fromScreenLocation(new PointF(wrongX, wrongY));
-
-                setLocateBody(latLng, wronglatLng);
+//                LatLng latLng = map.getProjection().fromScreenLocation(new PointF(mWidth, mHeight));
+//                setTextBody(latLng);
             }
         });
 
@@ -121,53 +106,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void onClick(View v) {
 
-                map.clear();
-
                 LocCoordDO objLocCoordDO = new Gson().fromJson(edtLocation.getText().toString(), new TypeToken<LocCoordDO>(){}.getType());
                 Log.d("LocCoordDO", objLocCoordDO.lat + " " + objLocCoordDO.lng);
                 LatLng latlng = new LatLng(objLocCoordDO.lat, objLocCoordDO.lng);
+                map.animateCamera(CameraUpdateFactory.newLatLng(latlng));
 
-                LatLng wronglatlng = new LatLng(objLocCoordDO.wrongLat, objLocCoordDO.wrongLng);
-
-                MarkerOptions wrongMarker = new MarkerOptions().position(wronglatlng).title("Wrong");//.icon(iconMax);
-                map.addMarker(wrongMarker);
-
-                Location correctPoint=new Location("locationCorrect");
-                correctPoint.setLatitude(objLocCoordDO.lat);
-                correctPoint.setLongitude(objLocCoordDO.lng);
-
-                Location wrongPoint=new Location("locationWrong");
-                wrongPoint.setLatitude(objLocCoordDO.wrongLat);
-                wrongPoint.setLongitude(objLocCoordDO.wrongLng);
-
-                objLocCoordDO.distance = correctPoint.distanceTo(wrongPoint);
-                objLocCoordDO.bearing = correctPoint.bearingTo(wrongPoint);
-
-//                IconFactory iconFactory = IconFactory.getInstance(MainActivity.this);
-//                Icon iconMin = iconFactory.fromResource(R.drawable.ic_min);
-//                Icon iconMax = iconFactory.fromResource(R.drawable.ic_max);
-
-//                double[] boundingBox = getBoundingBox(wrongPoint.getLatitude(), wrongPoint.getLongitude(), objLocCoordDO.distance, objLocCoordDO.bearing);
-//                MarkerOptions minMarker = new MarkerOptions().position(new LatLng(boundingBox[0], boundingBox[1])).title("Min");//.icon(iconMin);
-//                map.addMarker(minMarker);
-//                MarkerOptions maxMarker = new MarkerOptions().position(new LatLng(boundingBox[2], boundingBox[3])).title("Max");//.icon(iconMax);
-//                map.addMarker(maxMarker);
-
-//                System.out.println("boundingBox: " + boundingBox[0] + " " + boundingBox[1] +
-//                        "\n" + boundingBox[2] + " " + boundingBox[3] +
-//                        "\n" + boundingBox[4] + " " + boundingBox[5]);
-
-
-                double[] actualPoint = getActualPOint(wrongPoint.getLatitude(), wrongPoint.getLongitude(), objLocCoordDO.distance);
-                MarkerOptions diffMarker = new MarkerOptions().position(new LatLng(actualPoint[0], actualPoint[1])).title("Diff");//.icon(iconMax);
-                map.addMarker(diffMarker);
-
-                System.out.println("actualPoint: " + actualPoint[0] + " " + actualPoint[1]);
-
-
-                setSearchBody(objLocCoordDO);
-
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, 21));
+                map.clear();
+                map.addMarker(new MarkerOptions().position(latlng));
             }
         });
 
@@ -193,76 +138,33 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 map.setMyLocationEnabled(true);
 
                 setupMap();
+
+                setMapClick();
+            }
+        });
+
+    }
+
+    private void setMapClick() {
+
+        map.setOnMapClickListener(new MapboxMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(@NonNull LatLng point) {
+
+                map.clear();
+                map.addMarker(new MarkerOptions().position(point));
+
+                setTextBody(point);
             }
         });
     }
 
-    private double[] getActualPOint(final double pLatitude, final double pLongitude, final double pDistanceInMeters) {
-
-        final double[] boundingBox = new double[2];
-
-        double lat = pLatitude + (180/Math.PI)*(pDistanceInMeters/6378137);
-//        double lon = pLongitude + (180/Math.PI)*(pDistanceInMeters/6378137)/Math.cos(pLatitude);
-        double lon = pLongitude;
-
-        boundingBox[0] = lat;
-        boundingBox[1] = lon;
-
-        return boundingBox;
-    }
-
-    private double[] getBoundingBox(final double pLatitude, final double pLongitude, final double pDistanceInMeters, final double bearing) {
-
-        final double[] boundingBox = new double[6];
-
-        final double latRadian = Math.toRadians(pLatitude);
-
-        double deg = 110.574235;
-//        double deg = bearing;
-        final double degLatKm = deg;
-        final double degLongKm = deg *  Math.cos(latRadian);
-        final double deltaLat = pDistanceInMeters / 1000.0 / degLatKm;
-        final double deltaLong = pDistanceInMeters / 1000.0 / degLongKm;
-
-        final double minLat = pLatitude - deltaLat;
-        final double minLong = pLongitude - deltaLong;
-        final double maxLat = pLatitude + deltaLat;
-        final double maxLong = pLongitude + deltaLong;
-
-        double lat = pLatitude + (180/Math.PI)*(pDistanceInMeters/6378137);
-//        double lon = pLongitude + (180/Math.PI)*(pDistanceInMeters/6378137)/Math.cos(pLatitude);
-        double lon = pLongitude;
-
-        boundingBox[0] = minLat;
-        boundingBox[1] = minLong;
-        boundingBox[2] = maxLat;
-        boundingBox[3] = maxLong;
-
-        boundingBox[4] = lat;
-        boundingBox[5] = lon;
-
-        return boundingBox;
-    }
-
-    private void setLocateBody(LatLng latLng, LatLng wrongLatLng) {
+    private void setTextBody(LatLng latLng) {
         LocCoordDO objLocCoordDO = new LocCoordDO();
         objLocCoordDO.lat = latLng.getLatitude();
         objLocCoordDO.lng = latLng.getLongitude();
-
-        objLocCoordDO.wrongLat = wrongLatLng.getLatitude();
-        objLocCoordDO.wrongLng = wrongLatLng.getLongitude();
-
-        objLocCoordDO.zoom = (int) map.getCameraPosition().zoom;;
-
         String coord = "";
         coord = new Gson().toJson(objLocCoordDO).toString();
-        edtLocation.setText(coord);
-    }
-
-    private void setSearchBody(LocCoordDO objLocCoordDO) {
-        String coord = "";
-        coord = new Gson().toJson(objLocCoordDO).toString();
-        LogUtils.debugLog("Search", coord);
         edtLocation.setText(coord);
     }
 
@@ -306,9 +208,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if(map != null) {
             map.setMyLocationEnabled(true);
             map.getTrackingSettings().setMyLocationTrackingMode(MyLocationTracking.TRACKING_FOLLOW);
-//            map.setMinZoomPreference(MAPBOX_BITMAP_MIN_ZOOM_LEVEL);
-
-//            map.setStyle("cimwagg8700f6ahnpta9fktm4");
+            map.setMinZoomPreference(MAPBOX_BITMAP_MIN_ZOOM_LEVEL);
         }
     }
 
@@ -324,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         if(isGpsEnabled()) {
         } else {
-            Toast.makeText(MainActivity.this, "Enable location sevices in your Settings", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MapActivity.this, "Enable location sevices in your Settings", Toast.LENGTH_SHORT).show();
         }
 
         if(mGoogleApiClient != null)
@@ -390,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if(location == 2) {
                 buildGoogleApiClient();
             } else {
-                Toast.makeText(MainActivity.this, "Allow location permission to access your location", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapActivity.this, "Allow location permission to access your location", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -459,17 +359,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         tvCopy          = (TextView) findViewById(R.id.tvCopy);
         tvPaste         = (TextView) findViewById(R.id.tvPaste);
 
-        ivMarkerCentre  = (ImageView) findViewById(R.id.ivMarkerCentre);
+//        ivMarkerCentre  = (ImageView) findViewById(R.id.ivMarkerCentre);
 
-        ivMarkerCentre.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-
-                ivMarkerCentre.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-
-                int h = ivMarkerCentre.getHeight();
-                ivMarkerCentre.setTranslationY(-(float) h / 2);
-            }
-        });
     }
 }

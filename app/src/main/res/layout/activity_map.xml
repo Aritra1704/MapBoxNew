@@ -11,18 +11,18 @@
         android:id="@+id/mvMap"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_styleUrl="@string/mapbox_style_satellite_streets" />
+        mapbox:mapbox_styleUrl="@string/mapbox_style_light" />
 
-    <ImageView
-        android:id="@+id/ivMarkerCentre"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="center"
-        app:srcCompat="@drawable/ic_zippr_marker"/>
+    <!--<ImageView-->
+        <!--android:id="@+id/ivMarkerCentre"-->
+        <!--android:layout_width="24dp"-->
+        <!--android:layout_height="24dp"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:src="@drawable/ic_marker" />-->
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="150dip"
+        android:layout_height="125dip"
         android:layout_gravity="bottom"
         android:layout_margin="25dp"
         android:background="@drawable/bg_edt_w"
@@ -33,7 +33,6 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="1"
-            android:textSize="13sp"
             android:gravity="top"
             android:background="@color/transparent"
             android:padding="4dip" />

@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">MapBoxNew</string>
-    <string name="mapbox_access_token">API_KEY</string>
+    <!--<string name="mapbox_access_token">sk.eyJ1IjoiYXZ1Y2hpIiwiYSI6IjIxNmVjODg3ZmQ5Y2Q4YjRlY2NhZTg4ZjZiODEwNzZjIn0.zb5iusdZ3Avldn7VcmsnJg</string>-->
+    <string name="mapbox_access_token">pk.eyJ1IjoiYXJpdHJhcnBhbCIsImEiOiJjajN3bGo5ankwMDR5MzJwOGxqNGNuYTQxIn0.ZhgMgSD3r9Sz864sSezaVg</string>
+    <string name="digtalglobe_access_token_pk">pk.eyJ1IjoiZGlnaXRhbGdsb2JlIiwiYSI6ImNqOW52amdjMjF3d3Yyd2xnODNsdHN4NXYifQ.ywim0FIAUG7aoEHWRa3FCg</string>
+    <string name="digtalglobe_access_token_sk">sk.eyJ1IjoiZGlnaXRhbGdsb2JlIiwiYSI6ImNqOXNxbXFqNjZpdjQyd3BhZzh5OXN6cncifQ.K7Anw-amsbF3-a3_yq9Ucg</string>
 </resources>
