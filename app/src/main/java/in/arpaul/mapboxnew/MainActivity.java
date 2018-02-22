@@ -19,6 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -45,6 +46,8 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.style.layers.RasterLayer;
+import com.mapbox.mapboxsdk.style.sources.RasterSource;
 
 import in.arpaul.mapboxnew.dataobject.LocCoordDO;
 
@@ -66,14 +69,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private static final float MAPBOX_BITMAP_MIN_ZOOM_LEVEL = 13.0F;
     private final float zoom = 18F;
+    private double lati = 16.268052, longi = 80.999730;//16.268052, 80.999730 ----- Nimmakuru
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mIsValidGlVersion = isGlEsVersionSupported(this);
 
-//        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
-        Mapbox.getInstance(this, getString(R.string.digtalglobe_access_token_sk));
+        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));//17.447863, 78.391388
+//        Mapbox.getInstance(this, getString(R.string.digtalglobe_access_token_sk));
         setContentView(R.layout.activity_main);
 
         intialiseUIControls();
@@ -123,25 +127,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
                 map.clear();
 
-                LocCoordDO objLocCoordDO = new Gson().fromJson(edtLocation.getText().toString(), new TypeToken<LocCoordDO>(){}.getType());
-                Log.d("LocCoordDO", objLocCoordDO.lat + " " + objLocCoordDO.lng);
-                LatLng latlng = new LatLng(objLocCoordDO.lat, objLocCoordDO.lng);
+                if(!TextUtils.isEmpty(edtLocation.getText().toString())) {
 
-                LatLng wronglatlng = new LatLng(objLocCoordDO.wrongLat, objLocCoordDO.wrongLng);
+                    LocCoordDO objLocCoordDO = new Gson().fromJson(edtLocation.getText().toString(), new TypeToken<LocCoordDO>(){}.getType());
+                    Log.d("LocCoordDO", objLocCoordDO.lat + " " + objLocCoordDO.lng);
+                    LatLng latlng = new LatLng(objLocCoordDO.lat, objLocCoordDO.lng);
 
-                MarkerOptions wrongMarker = new MarkerOptions().position(wronglatlng).title("Wrong");//.icon(iconMax);
-                map.addMarker(wrongMarker);
+                    LatLng wronglatlng = new LatLng(objLocCoordDO.wrongLat, objLocCoordDO.wrongLng);
 
-                Location correctPoint=new Location("locationCorrect");
-                correctPoint.setLatitude(objLocCoordDO.lat);
-                correctPoint.setLongitude(objLocCoordDO.lng);
+                    MarkerOptions wrongMarker = new MarkerOptions().position(wronglatlng).title("Wrong");//.icon(iconMax);
+                    map.addMarker(wrongMarker);
 
-                Location wrongPoint=new Location("locationWrong");
-                wrongPoint.setLatitude(objLocCoordDO.wrongLat);
-                wrongPoint.setLongitude(objLocCoordDO.wrongLng);
+                    Location correctPoint=new Location("locationCorrect");
+                    correctPoint.setLatitude(objLocCoordDO.lat);
+                    correctPoint.setLongitude(objLocCoordDO.lng);
 
-                objLocCoordDO.distance = correctPoint.distanceTo(wrongPoint);
-                objLocCoordDO.bearing = correctPoint.bearingTo(wrongPoint);
+                    Location wrongPoint=new Location("locationWrong");
+                    wrongPoint.setLatitude(objLocCoordDO.wrongLat);
+                    wrongPoint.setLongitude(objLocCoordDO.wrongLng);
+
+                    objLocCoordDO.distance = correctPoint.distanceTo(wrongPoint);
+                    objLocCoordDO.bearing = correctPoint.bearingTo(wrongPoint);
 
 //                IconFactory iconFactory = IconFactory.getInstance(MainActivity.this);
 //                Icon iconMin = iconFactory.fromResource(R.drawable.ic_min);
@@ -158,16 +164,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //                        "\n" + boundingBox[4] + " " + boundingBox[5]);
 
 
-                double[] actualPoint = getActualPOint(wrongPoint.getLatitude(), wrongPoint.getLongitude(), objLocCoordDO.distance);
-                MarkerOptions diffMarker = new MarkerOptions().position(new LatLng(actualPoint[0], actualPoint[1])).title("Diff");//.icon(iconMax);
-                map.addMarker(diffMarker);
+                    double[] actualPoint = getActualPOint(wrongPoint.getLatitude(), wrongPoint.getLongitude(), objLocCoordDO.distance);
+                    MarkerOptions diffMarker = new MarkerOptions().position(new LatLng(actualPoint[0], actualPoint[1])).title("Diff");//.icon(iconMax);
+                    map.addMarker(diffMarker);
 
-                System.out.println("actualPoint: " + actualPoint[0] + " " + actualPoint[1]);
+                    System.out.println("actualPoint: " + actualPoint[0] + " " + actualPoint[1]);
 
+                    setSearchBody(objLocCoordDO);
+                } else {
+                    latlng = new LatLng(lati, longi);
+                }
 
-                setSearchBody(objLocCoordDO);
-
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, 21));
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, zoom));
             }
         });
 
@@ -309,6 +317,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //            map.setMinZoomPreference(MAPBOX_BITMAP_MIN_ZOOM_LEVEL);
 
 //            map.setStyle("cimwagg8700f6ahnpta9fktm4");
+
+//            map.setStyleUrl("https://cloud.pix4d.com/project/embed/86503-16623cc0fa6e41ecba6c0fed5b5954af");
+
+//            RasterSource chicagoSource = new RasterSource("chicago-source", "mapbox://mapbox.u8yyzaor");
+            RasterSource nimmakuru = new RasterSource("nimmakuru", "https://cloud.pix4d.com/project/embed/86503-16623cc0fa6e41ecba6c0fed5b5954af");
+            map.addSource(nimmakuru);
+
+            RasterLayer nimmakuruLayer = new RasterLayer("nimmakuru", "nimmakuru");
+            map.addLayer(nimmakuruLayer);
         }
     }
 
@@ -331,6 +348,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             mGoogleApiClient.connect();
     }
 
+    private LatLng latlng;
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Location location = null;
@@ -346,7 +364,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         } else
             location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-        final LatLng latlng = new LatLng(location.getLatitude(), location.getLongitude());
+        if(location != null)
+            latlng = new LatLng(location.getLatitude(), location.getLongitude());
+        else
+            latlng = new LatLng(lati, longi);
+
+
         mvMap.post(new Runnable() {
             @Override
             public void run() {
